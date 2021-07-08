@@ -1,0 +1,33 @@
+<div class="customsection-container">
+    <div class="custom-block">
+    {% if customsection.customobjects | length >1 %}
+    
+      <div class="vp-switch">
+        {% for customobject in customsection.customobjects %}
+        {% if loop.index == 1 %}
+        <input type="radio" name="custom-object-names" id="custom-object-{{ customobject.name }}" checked />
+        <label for="custom-object-{{ customobject.name }}" onclick="openTabBlock(this)" >{{ customobject.name }}</label>
+        {% else %}
+        <input type="radio" name="custom-object-names" id="custom-object-{{ customobject.name }}" />
+        <label for="custom-object-{{ customobject.name }}" onclick="openTabBlock(this)" >{{ customobject.name }}</label>
+        {% endif %}
+        {% endfor %}
+      </div>
+  
+      {% for customobject in customsection.customobjects %}
+      {% if loop.index == 1 %}
+      <div class="customsection-tabcontent" style="display: block;">
+        {{ customobject.html }}
+      </div>
+      {% else %}
+      <div class="customsection-tabcontent" style="display: none">
+        {{ customobject.html }}
+      </div>
+      {% endif %}
+      {% endfor %}
+    {% else %}
+      {{ customsection.customobjects[0].html }}
+    </div>
+    {% endif %}
+</div>
+  

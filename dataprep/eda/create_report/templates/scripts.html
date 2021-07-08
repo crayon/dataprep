@@ -99,6 +99,15 @@
         }
         allContentEle[Math.round(btnIndex/2)].style.display = (btnIndex == 1) ? 'flex' : 'block';
     }
+// For showing Plotly figured properly
+    function openTabBlock(e) {
+        const btnIndex = [...e.parentElement.children].indexOf(e);
+        const allContentEle = e.parentElement.parentElement.children;
+        for (let i of [...allContentEle].slice(1)) {
+            i.style.display = 'none';
+        }
+        allContentEle[Math.round(btnIndex/2)].style.display = (btnIndex == 1) ? 'block' : 'block';
+    }
 
     function switchPage(e) {
         const pageTo = e.id.replace('switch', 'page');

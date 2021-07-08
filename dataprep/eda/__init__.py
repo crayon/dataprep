@@ -6,7 +6,7 @@ from bokeh.io import output_notebook
 
 from ..utils import is_notebook
 from .correlation import compute_correlation, plot_correlation, render_correlation
-from .create_report import create_report
+#from .create_report import create_report
 from .distribution import compute, plot, render
 from .dtypes import (
     Categorical,
@@ -24,30 +24,30 @@ from .dtypes import (
 from .missing import compute_missing, plot_missing, render_missing
 from .diff import plot_diff, compute_diff, render_diff
 
-__all__ = [
-    "plot_correlation",
-    "compute_correlation",
-    "render_correlation",
-    "compute_missing",
-    "render_missing",
-    "plot_missing",
-    "plot",
-    "compute",
-    "render",
-    "DType",
-    "Categorical",
-    "Nominal",
-    "Ordinal",
-    "Numerical",
-    "Continuous",
-    "Discrete",
-    "DateTime",
-    "Text",
-    "create_report",
-    "plot_diff",
-    "compute_diff",
-    "render_diff",
-]
+# __all__ = [
+#     "plot_correlation",
+#     "compute_correlation",
+#     "render_correlation",
+#     "compute_missing",
+#     "render_missing",
+#     "plot_missing",
+#     "plot",
+#     "compute",
+#     "render",
+#     "DType",
+#     "Categorical",
+#     "Nominal",
+#     "Ordinal",
+#     "Numerical",
+#     "Continuous",
+#     "Discrete",
+#     "DateTime",
+#     "Text",
+#     "create_report",
+#     "plot_diff",
+#     "compute_diff",
+#     "render_diff",
+# ]
 
 
 if is_notebook():
