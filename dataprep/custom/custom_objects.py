@@ -1,7 +1,8 @@
 """This module provides classes to be use when customising the context used by create_report()"""
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 from plotly.graph_objects import Figure as goFigure
+from matplotlib.figure import Figure as mplFigure
 import PIL.Image
 from io import BytesIO
 import numpy as np
@@ -10,6 +11,16 @@ from pandas import DataFrame
 from numpy import ndarray
 import dataprep.eda.container
 # from urllib.parse import quote
+import warnings
+try:
+    from markdown import Markdown
+    md = Markdown(output_format="html5")
+except ModuleNotFoundError:
+    msg = (
+        "'markdown' module not found. Install markdown using `pip install markdown` "
+        "to create CustomMarkdown objects."
+    )
+    warnings.warn(msg, ImportWarning)
 
 
 class CustomObject:
@@ -28,12 +39,12 @@ class CustomPlotly(CustomObject):
     ) -> None:
         """ `*args` and `**kwargs` are passed to
             plotly.graph_objects.Figure.to_html() """
-        self.name=name
-        self.object_type="plotly"
+        self.name = name
+        self.object_type = "plotly"
         self.figure=obj  # TODO: Decide if this is actually necessary
         self.html=obj.to_html(*args, **kwargs)
         # TODO: Only return the <div> child of <body> if the <style> elements
-        # from <head> can be captured elsewhere in the 
+        # from <head> can be captured elsewhere in the
 
 
 class CustomHTML(CustomObject):
@@ -43,21 +54,27 @@ class CustomHTML(CustomObject):
         name: str,
         obj: str,
     ) -> None:
-        self.name=name
-        self.object_type="html"
+        self.name = name
+        self.object_type = "html"
         self.html=obj
 
 
 class CustomMarkdown(CustomObject):
-    # TODO
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        name: str,
+        text: str,
+    ) -> None:
+        self.name = name
+        self.object_type = "markdown"
+        self.html=md.reset().convert(text)
 
 
 class CustomVideo(CustomObject):
     # TODO Igor's idea. Medium priority.
     def __init__(self):
         pass
+
 
 class CustomPandasProfiling(CustomObject):
     # TODO low priority
@@ -73,19 +90,41 @@ class CustomDataPrep(CustomObject):
         obj: dataprep.eda.container.Container,
     ) -> None:
         self.name = name
-        self.object_type="dataprep"
-        self.html=obj._repr_html_()
-        from bs4 import BeautifulSoup
-        soup = BeautifulSoup(self.html, "html.parser")
-        self.scripts = soup.findall("script")
-        self.body = None
-        self.styles = None
-        # TODO
+        self.object_type = "dataprep"
+        self.html = obj._repr_html_()
+        # from bs4 import BeautifulSoup
+        # soup = BeautifulSoup(self.html, "html.parser")
+        # self.scripts = soup.findall("script")
+        # self.body = None
+        # self.styles = None
+        # TODO extract out body, styles and scripts from html if overhead gets too large
 
 
-class CustomMPL(CustomObject):
-    # TODO
-    pass
+class CustomMatplotlib(CustomObject):
+    """ A wrapper around `matplotlib.figure.Figure`.
+        *args and **kwargs are passed to `matplotlib.figure.Figure.savefig()`
+    """
+    def __init__(
+        self,
+        name: str,
+        obj: mplFigure,
+        *args,
+        **kwargs,
+    ) -> None:
+        self.name = name
+        self.object_type = "matplotlib"
+        with BytesIO() as buffer:
+            obj.savefig(buffer, *args, **kwargs)
+            byte_data=buffer.getvalue()
+        image_str=base64.b64encode(byte_data).decode(encoding="utf-8")
+        self.image_str=image_str
+        image_url=f"data:image/png;base64,{image_str}"
+        self.image_url=image_url
+        self.html=f'<img class="custom-image" src="{image_url}" />'
+
+
+# Alias for CustomMatplotlib
+CustomMPL = CustomMatplotlib
 
 
 class CustomImage(CustomObject):
@@ -99,8 +138,8 @@ class CustomImage(CustomObject):
         name: str,
         obj: Union[str, PIL.Image.Image, np.ndarray]
     ) -> None:
-        self.name=name
-        self.object_type="image"
+        self.name = name
+        self.object_type = "image"
 
         if isinstance(obj, str):
             image_url, image_str=get_image_url(obj)
@@ -150,8 +189,8 @@ class CustomTable(CustomObject):
         obj: Union[DataFrame, ndarray],
         **kwargs
     ) -> None:
-        self.name=name
-        self.object_type="table"
+        self.name = name
+        self.object_type = "table"
         kwargs.pop("buf", None)
         if isinstance(obj, DataFrame):
             self.html=obj.to_html(buf=None, **kwargs)
@@ -174,16 +213,19 @@ class CustomSection:
         customobjects: Optional[Union[CustomObject, List[CustomObject]]] = None,
     ) -> None:
         self.title=title
-        self.customobjects=[]
-        if isinstance(customobjects, CustomObject):
-            self.customobjects += [customobjects]
-        elif isinstance(customobjects, list):
-            self.customobjects += customobjects
+        if isinstance(customobjects, list):
+            self.customobjects = customobjects
         else:
-            None
+            self.customobjects = [customobjects]
 
-    def add_object(self, customobject: Union[CustomHTML, CustomPlotly, CustomImage]):
-        self.customobjects.append(customobject)
+    def add_object(
+        self,
+        customobject: Union[CustomHTML, CustomPlotly, CustomImage]
+    ):
+        if isinstance(customobject, list):
+            self.customobjects += customobject
+        else:
+            self.customobjects.append(customobject)
         return self
 
 
@@ -231,14 +273,3 @@ def convert_mplfigure_to_array(fig, **kwargs):
     return np.reshape(
         array,
         newshape=(int(fig.bbox.size[1]), int(fig.bbox.size[0]), -1))
-
-
-def add_section(context: Dict, section: CustomSection) -> Dict:
-    """ Adds a custom section to a context dictionary """
-
-    context["components"]["has_customsections"]=True
-    try:
-        context["components"]["customsections"].append(section)
-    except KeyError:
-        context["components"]["customsections"]=[section]
-    return context

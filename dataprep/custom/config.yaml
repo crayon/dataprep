@@ -1,0 +1,46 @@
+---
+default_plot_type: plotly
+# currently matplotlib is not accepted as an object_type from config
+# TODO explore the kwargs and ax.() functions from matplotlib
+default_data: path_to_pkl_csv_etc
+data_import_kwargs:
+  kwarg1: value1
+  kwarg2: value2
+
+report_title: None
+
+sections: 
+  - section_title: None
+    objects:
+        - name: None
+          data: Optional_argument_to_datapath
+          data_import_kwargs: # for the optional data argument above
+            kwarg1: value1
+            kwarg2: value2
+          object_type: plotly # CustomPlotly
+          plot_type: scatter
+          # kwargs to for px.scatter
+          x: col1
+          y: col2
+          color: col3
+          size: col4
+        - name: None
+          object_type: image
+          image_path: path_to_image_file
+  - section_title: None
+      objects:
+        - name: None
+          object_type: table # CustomTable
+          data: path_to_data_file # otherwise default_data is used
+          data_import_kwargs:
+            k1: v1
+            k2: v2
+          # kwargs to CustomTable
+            k3: v3
+            k4: v4
+        - name: None
+          object_type: html # CustomHTML
+          html_path: path_to_html_file
+        - name: None
+          object_type: markdown # CustomMarkdown
+          html_path: path_to_md_file
